@@ -9,28 +9,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kg.iuca.campuscard.ui.theme.CampusCardLabTheme
+import kotlin.random.Random // 1. Импорт для случайного выбора цвета
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,146 +37,73 @@ class MainActivity : ComponentActivity() {
         setContent {
             CampusCardLabTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    CampusCardScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    WordleGridScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
-// Exercise 5: extracted composable
 @Composable
-fun ProfileHeader(
-    name: String,
-    status: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-        )
-        Column {
-            Text(text = name, style = MaterialTheme.typography.titleMedium)
-            Text(text = status, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
+fun WordleGridScreen(modifier: Modifier = Modifier) {
+    val Name = listOf("Yusupov", "Farhad", "IT-124")
+    val text = "Hello, World!".filter { it.isLetter() }
+    val firstRow = text.take(5) // Hello
+    val secondRow = text.takeLast(5) // World
+    val thirdRow = listOf(firstRow, secondRow)
+    val LastRow = listOf("Something", "like", "that", "LexusRX300")
 
-// Exercise 5: extracted composable
-// Exercise 3: verticalAlignment = Alignment.Top (попробуйте CenterVertically)
-// Exercise 4: title = Modifier.weight(1f)
-@Composable
-fun ScheduleRow(
-    time: String,
-    title: String,
-    room: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top // Exercise 3: попробуйте CenterVertically
-    ) {
-        Text(
-            text = time,
-            // Exercise 3: время крупнее названия курса
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.width(64.dp)
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f) // Exercise 4
-        )
-        Text(
-            text = room,
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-}
-
-@Composable
-fun CampusCardScreen(modifier: Modifier = Modifier) {
-    // Exercise 2: переключатель для нижней панели
-    var useSpaceBetween by remember { mutableStateOf(true) }
+    // Объединяем все слова в один общий список
+    val allWords = Name + thirdRow + LastRow
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top,   // Exercise 6: попробуйте SpaceBetween
-        horizontalAlignment = Alignment.Start
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()) // Скролл для большого количества слов
+            .background(Color.Magenta)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Заголовок профиля (вложенный Row + Column)
-        ProfileHeader(
-            name = "Farhad",
-            status = "In class · Building B"
-        )
+        // 2. Используем forEachIndexed, чтобы знать индекс текущей строки (rowIndex)
+        allWords.forEachIndexed { rowIndex, word ->
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Проверяем: четная ли это строка по порядку на экране (индексы 1, 3, 5...)
+            val isEvenRow = rowIndex % 2 != 0
 
-        // Exercise 1: этот блок можно центрировать через
-        // horizontalAlignment = Alignment.CenterHorizontally у Column
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(
-                text = "Campus Card",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Text(text = "Farhad")
-            Text(text = "Student ID: 26.10.26")
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                word.forEach { letter ->
 
-        Spacer(modifier = Modifier.height(24.dp))
+                    // 3. Логика выбора цвета для каждой плашки
+                    val boxColor = remember(rowIndex, letter) {
+                        if (isEvenRow) {
+                            // В четных строках случайным образом выпадает Желтый или Серый
+                            if (Random.nextBoolean()) Color.Yellow else Color.Gray
+                        } else {
+                            // В нечетных строках — стандартный Зеленый
+                            Color.Green
+                        }
+                    }
 
-        Text(text = "Today", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-
-// Список пар — три строки
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ScheduleRow(
-                time = "9:30",
-                title = "Machine Learning",
-                room = "Cyber Lab"
-            )
-            ScheduleRow(
-                time = "10:50",
-                title = "Mobile App Development",
-                room = "B305"
-            )
-            // Exercise 4: длинный заголовок — проверьте, что аудитория не уезжает
-            ScheduleRow(
-                time = "13:10",
-                title = "Algorithms and Data Structures for IT 124",
-                room = "B001"
-            )
-        }
-
-        // Прижимаем нижнюю панель к низу экрана
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Exercise 2: SpaceBetween vs Center
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = if (useSpaceBetween) {
-                Arrangement.SpaceBetween
-            } else {
-                Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
-            }
-        ) {
-            Button(onClick = { useSpaceBetween = !useSpaceBetween }) {
-                Text("Map")
-            }
-            OutlinedButton(onClick = { useSpaceBetween = !useSpaceBetween }) {
-                Text("Show QR")
+                    Box(
+                        modifier = Modifier
+                            .background(color = boxColor) // Применяем динамический цвет
+                            .weight(1f)
+                            .aspectRatio(1f),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = letter.toString(),
+                            textAlign = TextAlign.Center,
+                            color = Color.Blue,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -186,8 +111,8 @@ fun CampusCardScreen(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun CampusCardPreview() {
+fun WordleGridPreview() {
     CampusCardLabTheme {
-        CampusCardScreen()
+        WordleGridScreen()
     }
 }
