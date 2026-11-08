@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WordleGridScreen(modifier: Modifier = Modifier) {
+    // Слова выходящие на экран
     val Name = listOf("Yusupov", "Farhad", "IT-124")
     val text = "Hello, World!".filter { it.isLetter() }
     val firstRow = text.take(5) // Hello
